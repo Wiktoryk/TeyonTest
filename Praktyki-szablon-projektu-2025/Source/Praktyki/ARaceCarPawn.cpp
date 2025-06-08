@@ -5,17 +5,30 @@
 
 ARaceCarPawn::ARaceCarPawn() {
     PrimaryActorTick.bCanEverTick = true;
-    CarMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CarMesh"));
-    RootComponent = CarMesh;
-    CarMesh->SetSimulatePhysics(true);
-    CarMesh->SetEnableGravity(true);
-    CarMesh->BodyInstance.bUseCCD = true;
-    CarMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    static ConstructorHelpers::FObjectFinder<UStaticMesh> CarMeshAsset(TEXT("/Game/Vehicles/Porsche_911_GT3_R/SM_Porsche_911_GT3_R_Main_Body.SM_Porsche_911_GT3_R_Main_Body"));
+    RootComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("CollisionBox"));
+    CollisionBox = Cast<UBoxComponent>(RootComponent);
+    CollisionBox->SetSimulatePhysics(true);
+    CollisionBox->SetEnableGravity(false);
+    CollisionBox->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    CollisionBox->SetCollisionProfileName(TEXT("PhysicsActor"));
+    CollisionBox->SetBoxExtent(FVector(100.f, 50.f, 30.f));
+    CollisionBox->SetRelativeLocation(FVector(0.f, 0.f, 50.f));
+    CarMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("CarMesh"));
+    CarMesh->SetupAttachment(RootComponent);
+    CarMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    CarMesh->SetRelativeLocation(FVector(0.f, 0.f, -40.f));
+    static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMeshAsset(TEXT("/Game/Vehicles/Porsche_911_GT3_R/SK_Porsche_911_GT3-R.SK_Porsche_911_GT3-R"));
     if (CarMeshAsset.Succeeded())
     {
-        CarMesh->SetStaticMesh(CarMeshAsset.Object);
+        CarMesh->SetSkeletalMesh(CarMeshAsset.Object);
     }
+    //static ConstructorHelpers::FObjectFinder<UPhysicsAsset> PhysicsAsset(TEXT("/Script/Engine.PhysicsAsset'/Game/Vehicles/Porsche_911_GT3_R/SK_Porsche_911_GT3-R_PhysicsAsset'"));
+    //CarMesh->SetPhysicsAsset(PhysicsAsset.Object);
+    //CarMesh->SetSimulatePhysics(true);
+    //CarMesh->SetEnableGravity(false);
+    //CarMesh->BodyInstance.bUseCCD = true;
+    //CarMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    //CarMesh->SetCollisionObjectType(ECollisionChannel::ECC_PhysicsBody);
 
     /*class USkeletalMeshComponent* VehicleMesh = GetMesh();
     VehicleMesh->SetupAttachment(RootComponent);
@@ -27,36 +40,37 @@ ARaceCarPawn::ARaceCarPawn() {
     else
     {
         UE_LOG(LogTemp, Warning, TEXT("Could not load Vehicle SkeletalMesh!"));
-    }
+    }*/
     static ConstructorHelpers::FObjectFinder<UStaticMesh> FrontWheelMeshAsset(TEXT("/Game/Vehicles/Porsche_911_GT3_R/SM_Porsche_911_GT3_R_Front_Wheel.SM_Porsche_911_GT3_R_Front_Wheel"));
     static ConstructorHelpers::FObjectFinder<UStaticMesh> RearWheelMeshAsset(TEXT("/Game/Vehicles/Porsche_911_GT3_R/SM_Porsche_911_GT3_R_Rear_Wheel.SM_Porsche_911_GT3_R_Rear_Wheel"));
-    FrontRightWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrontRightWheelMesh"));
-    FrontRightWheelMesh->SetupAttachment(VehicleMesh, FName("wheel_front_right_spin"));
+    class UStaticMeshComponent* FrontRightWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrontRightWheelMesh"));
+    FrontRightWheelMesh->SetupAttachment(CarMesh, FName("wheel_front_right_spin"));
     if (FrontWheelMeshAsset.Succeeded())
     {
         FrontRightWheelMesh->SetStaticMesh(FrontWheelMeshAsset.Object);
     }
-
-    FrontLeftWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrontLeftWheelMesh"));
-    FrontLeftWheelMesh->SetupAttachment(VehicleMesh, FName("wheel_front_left_spin"));
+    FrontRightWheelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    class UStaticMeshComponent* FrontLeftWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("FrontLeftWheelMesh"));
+    FrontLeftWheelMesh->SetupAttachment(CarMesh, FName("wheel_front_left_spin"));
     if (FrontWheelMeshAsset.Succeeded())
     {
         FrontLeftWheelMesh->SetStaticMesh(FrontWheelMeshAsset.Object);
     }
-
-    RearRightWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RearRightWheelMesh"));
-    RearRightWheelMesh->SetupAttachment(VehicleMesh, FName("wheel_back_right_spin"));
+    FrontLeftWheelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    class UStaticMeshComponent* RearRightWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RearRightWheelMesh"));
+    RearRightWheelMesh->SetupAttachment(CarMesh, FName("wheel_back_right_spin"));
     if (RearWheelMeshAsset.Succeeded())
     {
         RearRightWheelMesh->SetStaticMesh(RearWheelMeshAsset.Object);
     }
-
-    RearLeftWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RearLeftWheelMesh"));
-    RearLeftWheelMesh->SetupAttachment(VehicleMesh, FName("wheel_back_left_spin"));
+    RearRightWheelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    class UStaticMeshComponent* RearLeftWheelMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("RearLeftWheelMesh"));
+    RearLeftWheelMesh->SetupAttachment(CarMesh, FName("wheel_back_left_spin"));
     if (RearWheelMeshAsset.Succeeded())
     {
         RearLeftWheelMesh->SetStaticMesh(RearWheelMeshAsset.Object);
-    }*/
+    }
+    RearLeftWheelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void ARaceCarPawn::BeginPlay()
@@ -87,14 +101,13 @@ void ARaceCarPawn::Tick(float DeltaTime)
 
     if (FMath::Abs(CurrentForwardInput) > KINDA_SMALL_NUMBER)
     {
-        FVector ForceDirection = CarMesh->GetForwardVector();
-        CarMesh->AddForce(ForceDirection * CurrentForwardInput * Acceleration);
+        FVector ForceDirection = CollisionBox->GetForwardVector();
+        CollisionBox->AddForce(ForceDirection * CurrentForwardInput * Acceleration);
     }
 
     if (FMath::Abs(CurrentRightInput) > KINDA_SMALL_NUMBER)
     {
-        FRotator CurrentRotation = CarMesh->GetComponentRotation();
-        CurrentRotation.Yaw += CurrentRightInput * TurnSpeed * DeltaTime;
-        CarMesh->SetWorldRotation(CurrentRotation);
+        FVector Torque = FVector(0.f, 0.f, CurrentRightInput * TurnTorque);
+        CollisionBox->AddTorqueInRadians(Torque);
     }
 }
