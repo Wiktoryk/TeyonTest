@@ -71,6 +71,19 @@ ARaceCarPawn::ARaceCarPawn() {
         RearLeftWheelMesh->SetStaticMesh(RearWheelMeshAsset.Object);
     }
     RearLeftWheelMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+    SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    SpringArm->SetupAttachment(RootComponent);
+    SpringArm->TargetArmLength = 500.f;
+    SpringArm->bUsePawnControlRotation = false;
+    SpringArm->bInheritPitch = false;
+    SpringArm->bInheritYaw = true;
+    SpringArm->bInheritRoll = false;
+    SpringArm->SocketOffset = FVector(0.f, 0.f, 100.f);
+
+    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+    Camera->bUsePawnControlRotation = false;
 }
 
 void ARaceCarPawn::BeginPlay()
@@ -83,6 +96,12 @@ void ARaceCarPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
     Super::SetupPlayerInputComponent(PlayerInputComponent);
     PlayerInputComponent->BindAxis("MoveForward", this, &ARaceCarPawn::MoveForward);
     PlayerInputComponent->BindAxis("MoveRight", this, &ARaceCarPawn::MoveRight);
+
+    PlayerInputComponent->BindAction("Brake", IE_Pressed, this, &ARaceCarPawn::BrakePressed);
+    PlayerInputComponent->BindAction("Brake", IE_Released, this, &ARaceCarPawn::BrakeReleased);
+
+    PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ARaceCarPawn::HandbrakePressed);
+    PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ARaceCarPawn::HandbrakeReleased);
 }
 
 void ARaceCarPawn::MoveForward(float Value)
@@ -101,13 +120,64 @@ void ARaceCarPawn::Tick(float DeltaTime)
 
     if (FMath::Abs(CurrentForwardInput) > KINDA_SMALL_NUMBER)
     {
-        FVector ForceDirection = CollisionBox->GetForwardVector();
-        CollisionBox->AddForce(ForceDirection * CurrentForwardInput * Acceleration);
+        CurrentSpeed += CurrentForwardInput * Acceleration * DeltaTime;
     }
-
-    if (FMath::Abs(CurrentRightInput) > KINDA_SMALL_NUMBER)
+    else {
+        if (CurrentSpeed > 0.f)
+        {
+            CurrentSpeed -= NaturalDeceleration * DeltaTime;
+            CurrentSpeed = FMath::Max(CurrentSpeed, 0.f);
+        }
+        else if (CurrentSpeed < 0.f)
+        {
+            CurrentSpeed += NaturalDeceleration * DeltaTime;
+            CurrentSpeed = FMath::Min(CurrentSpeed, 0.f);
+        }
+    }
+    if (bIsBraking) {
+        if (CurrentSpeed > 0.f)
+        {
+            CurrentSpeed -= BrakeDeceleration * DeltaTime;
+            CurrentSpeed = FMath::Max(CurrentSpeed, 0.f);
+        }
+    }
+    if (bIsHandBraking)
     {
-        FVector Torque = FVector(0.f, 0.f, CurrentRightInput * TurnTorque);
-        CollisionBox->AddTorqueInRadians(Torque);
+        if (CurrentSpeed > 0.f)
+        {
+            CurrentSpeed -= HandbrakeDeceleration * DeltaTime;
+            CurrentSpeed = FMath::Max(CurrentSpeed, 0.f);
+        }
     }
+    CurrentSpeed = FMath::Clamp(CurrentSpeed, -MaxSpeed * 0.5f, MaxSpeed);
+    if (FMath::Abs(CurrentRightInput) > KINDA_SMALL_NUMBER && FMath::Abs(CurrentSpeed) > 10.f)
+    {
+        float TurnAmount = CurrentRightInput * TurnSpeedDegreesPerSecond * DeltaTime * (CurrentSpeed / MaxSpeed);
+        FRotator CurrentRotation = CollisionBox->GetComponentRotation();
+        CurrentRotation.Yaw += TurnAmount;
+        CollisionBox->SetWorldRotation(CurrentRotation);
+    }
+    FVector ForwardVector = CollisionBox->GetForwardVector();
+    FVector NewVelocity = ForwardVector * CurrentSpeed;
+    CollisionBox->SetPhysicsLinearVelocity(NewVelocity);
+}
+
+void ARaceCarPawn::BrakePressed()
+{
+    bIsBraking = true;
+}
+
+void ARaceCarPawn::BrakeReleased()
+{
+    bIsBraking = false;
+}
+
+void ARaceCarPawn::HandbrakePressed()
+{
+    bIsHandBraking = true;
+}
+
+void ARaceCarPawn::HandbrakeReleased()
+{
+    bIsHandBraking = false;
 }
