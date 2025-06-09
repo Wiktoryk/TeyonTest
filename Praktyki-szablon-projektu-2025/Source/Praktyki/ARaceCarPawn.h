@@ -33,7 +33,7 @@ class PRAKTYKI_API ARaceCarPawn : public APawn
     float BrakeDeceleration = 4000.f;
     float HandbrakeDeceleration = 6000.f;
     float NaturalDeceleration = 500.f;
-    float TurnSpeedDegreesPerSecond = 60.f;
+    float TurnSpeedDegreesPerSecond = 45.f;
 
 public:
     ARaceCarPawn();
