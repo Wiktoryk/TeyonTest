@@ -38,6 +38,18 @@ void ARaceGameMode::StartRace()
 
 void ARaceGameMode::LapCompleted()
 {
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (!PC) {
+        return;
+    }
+
+    ARaceCarPawn* Car = Cast<ARaceCarPawn>(PC->GetPawn());
+    if (Car && Car->IsLapInvalidated())
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Lap ignored — invalidated due to off-tracking"));
+        Car->ResetLapInvalidation();
+        return;
+    }
     ++CurrentLap;
     if (CurrentLap >= TotalLaps)
     {

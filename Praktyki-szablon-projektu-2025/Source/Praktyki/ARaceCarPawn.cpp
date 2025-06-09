@@ -179,6 +179,8 @@ void ARaceCarPawn::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
+    CheckGroundMaterial(DeltaTime);
+
     if (FMath::Abs(CurrentForwardInput) > KINDA_SMALL_NUMBER)
     {
         CurrentSpeed += CurrentForwardInput * Acceleration * DeltaTime;
@@ -241,4 +243,66 @@ void ARaceCarPawn::HandbrakePressed()
 void ARaceCarPawn::HandbrakeReleased()
 {
     bIsHandBraking = false;
+}
+
+void ARaceCarPawn::SetIsOnTrack(bool bOnTrack)
+{
+    bIsOnTrack = bOnTrack;
+}
+
+void ARaceCarPawn::ResetLapInvalidation()
+{
+    bLapInvalidated = false;
+}
+
+bool ARaceCarPawn::IsLapInvalidated() const
+{
+    return bLapInvalidated;
+}
+
+void ARaceCarPawn::CheckGroundMaterial(float DeltaTime)
+{
+    FVector Start = CarMesh->GetComponentLocation();
+    FVector End = Start - FVector(0, 0, 1000.0f);
+
+    FHitResult HitResult;
+    FCollisionQueryParams QueryParams;
+    QueryParams.bReturnPhysicalMaterial = true;
+    QueryParams.AddIgnoredActor(this);
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(
+        HitResult,
+        Start,
+        End,
+        ECC_WorldStatic,
+        QueryParams
+    );
+
+    if (bHit)
+    {
+        UPhysicalMaterial* HitPhysMat = HitResult.PhysMaterial.Get();
+
+        if (HitPhysMat)
+        {
+            CurrentPhysicalMaterial = HitPhysMat;
+
+            FString MaterialName = HitPhysMat->GetName();
+            UE_LOG(LogTemp, Log, TEXT("Current ground material: %s"), *MaterialName);
+
+            if (MaterialName.Contains("Grass"))
+            {
+                OffTrackTime += DeltaTime;
+
+                if (OffTrackTime > MaxAllowedOffTrackTime && !bLapInvalidated)
+                {
+                    bLapInvalidated = true;
+                    UE_LOG(LogTemp, Warning, TEXT("Lap invalidated — too long off-track!"));
+                }
+            }
+            else
+            {
+                OffTrackTime = 0.0f;
+            }
+        }
+    }
 }

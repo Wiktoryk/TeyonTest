@@ -35,9 +35,17 @@ class PRAKTYKI_API ARaceCarPawn : public APawn
     float NaturalDeceleration = 500.f;
     float TurnSpeedDegreesPerSecond = 45.f;
 
+    float OffTrackTime = 0.0f;
+    float MaxAllowedOffTrackTime = 4.0f;
+    bool bIsOnTrack = true;
+    bool bLapInvalidated = false;
+    UPhysicalMaterial* CurrentPhysicalMaterial = nullptr;
+
 public:
     ARaceCarPawn();
     virtual void Tick(float DeltaTime) override;
+    bool IsLapInvalidated() const;
+    void ResetLapInvalidation();
 
     UPROPERTY(VisibleAnywhere, Category = "Race")
     ULapTimerComponent* LapTimerComponent;
@@ -53,4 +61,6 @@ protected:
     void BrakeReleased();
     void HandbrakePressed();
     void HandbrakeReleased();
+    void SetIsOnTrack(bool bOnTrack);
+    void CheckGroundMaterial(float deltaTime);
 };
