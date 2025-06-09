@@ -4,7 +4,7 @@
 #include "URaceGameInstance.generated.h"
 
 UCLASS()
-class URaceGameInstance : public UGameInstance
+class PRAKTYKI_API URaceGameInstance : public UGameInstance
 {
     GENERATED_BODY()
 

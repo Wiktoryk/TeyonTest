@@ -2,10 +2,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
 #include "Components/BoxComponent.h"
+#include "ULapTimerComponent.h"
 #include "ARaceCarPawn.generated.h"
 
 UCLASS()
-class ARaceCarPawn : public APawn
+class PRAKTYKI_API ARaceCarPawn : public APawn
 {
     GENERATED_BODY()
 
@@ -37,6 +38,9 @@ class ARaceCarPawn : public APawn
 public:
     ARaceCarPawn();
     virtual void Tick(float DeltaTime) override;
+
+    UPROPERTY(VisibleAnywhere, Category = "Race")
+    ULapTimerComponent* LapTimerComponent;
 
 protected:
     virtual void BeginPlay() override;

@@ -1,6 +1,8 @@
 #include "ARaceGameMode.h"
 #include "ARaceCarPawn.h"
 #include "ARacePlayerController.h"
+//#include "ARaceHUD2.h"
+#include "Kismet/GameplayStatics.h"
 
 ARaceGameMode::ARaceGameMode()
 {
@@ -9,6 +11,7 @@ ARaceGameMode::ARaceGameMode()
     RaceStartTime = 0.f;
     DefaultPawnClass = ARaceCarPawn::StaticClass();
     PlayerControllerClass = ARacePlayerController::StaticClass();
+    //HUDClass = ARaceHUD2::StaticClass();
 }
 
 void ARaceGameMode::BeginPlay()
@@ -21,6 +24,16 @@ void ARaceGameMode::StartRace()
 {
     RaceStartTime = GetWorld()->GetTimeSeconds();
     CurrentLap = 0;
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (!PC) {
+        return;
+    }
+
+    ARaceCarPawn* Car = Cast<ARaceCarPawn>(PC->GetPawn());
+    if (Car && Car->LapTimerComponent)
+    {
+        Car->LapTimerComponent->StartRace();
+    }
 }
 
 void ARaceGameMode::LapCompleted()
@@ -34,8 +47,17 @@ void ARaceGameMode::LapCompleted()
 
 void ARaceGameMode::EndRace()
 {
-    float RaceTime = GetWorld()->GetTimeSeconds() - RaceStartTime;
-    UE_LOG(LogTemp, Log, TEXT("Race finished in %f seconds."), RaceTime);
+    APlayerController* PC = UGameplayStatics::GetPlayerController(this, 0);
+    if (!PC) {
+        return;
+    }
+
+    ARaceCarPawn* Car = Cast<ARaceCarPawn>(PC->GetPawn());
+    if (Car && Car->LapTimerComponent)
+    {
+        Car->LapTimerComponent->EndRace();
+    }
+    UGameplayStatics::SetGamePaused(this, true);
 }
 
 int32 ARaceGameMode::GetCurrentLap() const

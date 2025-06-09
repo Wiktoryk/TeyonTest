@@ -84,6 +84,9 @@ ARaceCarPawn::ARaceCarPawn() {
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
     Camera->bUsePawnControlRotation = false;
+
+    LapTimerComponent = CreateDefaultSubobject<ULapTimerComponent>(TEXT("LapTimerComponent"));
+    Tags.Add(TEXT("PlayerCar"));
 }
 
 void ARaceCarPawn::BeginPlay()

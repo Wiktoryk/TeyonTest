@@ -4,7 +4,7 @@
 #include "ARaceGameMode.generated.h"
 
 UCLASS()
-class ARaceGameMode : public AGameModeBase
+class PRAKTYKI_API ARaceGameMode : public AGameModeBase
 {
     GENERATED_BODY()
 

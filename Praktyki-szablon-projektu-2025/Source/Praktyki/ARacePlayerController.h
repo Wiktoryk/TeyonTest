@@ -4,7 +4,7 @@
 #include "ARacePlayerController.generated.h"
 
 UCLASS()
-class ARacePlayerController : public APlayerController
+class PRAKTYKI_API ARacePlayerController : public APlayerController
 {
     GENERATED_BODY()
 
