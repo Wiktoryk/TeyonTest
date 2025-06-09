@@ -306,3 +306,13 @@ void ARaceCarPawn::CheckGroundMaterial(float DeltaTime)
         }
     }
 }
+
+bool ARaceCarPawn::CanFinishLap() const
+{
+    return bCanFinishLap;
+}
+
+void ARaceCarPawn::SetFinishLap(bool CanFinish)
+{
+    bCanFinishLap = CanFinish;
+}

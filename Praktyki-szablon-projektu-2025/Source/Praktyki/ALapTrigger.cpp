@@ -24,14 +24,18 @@ void ALapTrigger::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* Ot
     if (OtherActor && OtherActor->ActorHasTag(TEXT("PlayerCar")))
     {
         ARaceCarPawn* Car = Cast<ARaceCarPawn>(OtherActor);
-        if (Car && Car->LapTimerComponent)
+        if (Car && Car->CanFinishLap())
         {
-            Car->LapTimerComponent->CompleteLap();
-        }
-        ARaceGameMode* GameMode = Cast<ARaceGameMode>(UGameplayStatics::GetGameMode(this));
-        if (GameMode)
-        {
-            GameMode->LapCompleted();
+            if (Car->LapTimerComponent)
+            {
+                Car->LapTimerComponent->CompleteLap();
+                Car->SetFinishLap(false);
+            }
+            ARaceGameMode* GameMode = Cast<ARaceGameMode>(UGameplayStatics::GetGameMode(this));
+            if (GameMode)
+            {
+                GameMode->LapCompleted();
+            }
         }
     }
 }

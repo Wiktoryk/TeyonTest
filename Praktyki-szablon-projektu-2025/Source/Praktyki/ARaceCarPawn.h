@@ -41,11 +41,15 @@ class PRAKTYKI_API ARaceCarPawn : public APawn
     bool bLapInvalidated = false;
     UPhysicalMaterial* CurrentPhysicalMaterial = nullptr;
 
+    bool bCanFinishLap = false;
+
 public:
     ARaceCarPawn();
     virtual void Tick(float DeltaTime) override;
     bool IsLapInvalidated() const;
     void ResetLapInvalidation();
+    bool CanFinishLap() const;
+    void SetFinishLap(bool CanFinish);
 
     UPROPERTY(VisibleAnywhere, Category = "Race")
     ULapTimerComponent* LapTimerComponent;
